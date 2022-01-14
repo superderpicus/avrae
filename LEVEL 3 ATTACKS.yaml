@@ -1,0 +1,38 @@
+- name: Bite
+  automation:
+    - type: target
+      meta: []
+      target: each
+      effects:
+        - type: attack
+          meta: []
+          hit:
+            - type: damage
+              meta: []
+              damage: 1d6+2[piercing]
+              overheal: false
+          miss: []
+          attackBonus: "5"
+  _v: 2
+  verb: orders Fatalis to execute
+  phrase: "Bite. Melee Weapon Attack: +3 plus PB to hit, reach 5 ft., one target.
+    Hit: 1d6 plus PB piercing damage."
+  thumb: https://cdn.discordapp.com/attachments/930319517593247744/930749532839497728/MHWI-Fatalis_Render_001.png
+- name: Infused Strike
+  automation:
+    - type: target
+      meta: []
+      target: all
+      effects:
+        - type: damage
+          meta: []
+          damage: 1d6[{drake_element}]
+          overheal: false
+  _v: 2
+  proper: true
+  verb: orders Fatalis to execute
+  phrase: Infused Strikes. When another creature within 30 feet of the drake that
+    it can see hits a target with a weapon attack, the drake infuses the strike
+    with its essence, causing the target to take an extra 1d6 damage of the type
+    determined by its Draconic Essence.
+  thumb: https://cdn.discordapp.com/attachments/930319517593247744/930749532839497728/MHWI-Fatalis_Render_001.png
