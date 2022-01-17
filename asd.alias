@@ -1,0 +1,94 @@
+embed <drac2>
+
+ch = character()
+c = combat();
+com = c and c.me;
+#immune, neutral, resist, vuln
+resistance = com and com.resistances.resist or [];
+immunity = com and com.resistances.immune or [];
+neutral = com and com.resistances.neutral or [];
+vuln = com and com.resistances.vuln or [];
+cc = "Blood Charge";
+n = "Bloodsteel-Touched Mind [Mark 2]";
+base = "";
+desc = f'''*When casting a cantrip as your action, you may expend a Blood Charge. When you do so, an effect takes place in accordance to your roll. You have a number of Blood Charges equal to your proficiency bonus, and your regain all Blood Charges on a long rest.*\n\n''';
+
+if not ch.cc_exists(cc):
+	return f'''-title "{name} cannot use {n}" -desc "You don't have a counter called {cc}!"''';
+elif ch.get_cc(cc) <= 0:
+	return f'''-title "{name} cannot use {n}" -desc "You don't have enough charges to use {cc}!" -footer "{cc}: {ch.cc_str(cc)}"''';
+
+ar = argparse(&ARGS&);
+tar = ar.last('t') or "";
+
+#spellbook.cast(spell, level)
+
+# Roll Die for the effect
+r = vroll("1d4");
+res = r.total;
+ch.mod_cc(cc, -1);
+base += f'''-title "{name} uses their {n}!" -footer "{cc}: {ch.cc_str(cc)} (-1)" '''
+desc += f'''{r}\n\n''';
+if res == 1:
+	desc += f'''**You cast the cantrip, and can also cast the Frost Finger spell as a Bonus Action without expending a Spell Slot**\n''';
+elif res == 2:	
+	desc +=  f'''**You cast the cantrip, take 1d6 fire damage, and can also cast the Flaming Sphere spell as a Bonus Action without expending a Spell Slot**\n''';
+	dr = vroll("1d6");
+	dmg = dr.total;
+	for x in resistance:
+		if 'fire' in x.dtype:
+			dmg = floor(dmg / 2);
+	for x in vuln:
+			if 'fire' in x.dtype:
+				dmg = floor(dmg * 2);
+	for x in immunity:
+			if 'fire' in x.dtype:
+				dmg = 0;
+
+	dmg *= -1;
+	desc += f'''{dr} fire\n'''
+	ch.modify_hp(dmg);
+	desc += f'''\n{name}: {ch.hp_str()} ({dmg})''';
+elif res == 3:
+	desc += f'''**Do not cast the cantrip, take 2d6 fire damage, and can also cast the Fireball spell as an Action without expending a Spell Slot**\n\n''';
+	dr = vroll("2d6");
+	dmg = dr.total;
+	for x in resistance:
+		if 'fire' in x.dtype:
+			dmg = floor(dmg / 2);
+	for x in vuln:
+			if 'fire' in x.dtype:
+				dmg = floor(dmg * 2);
+	for x in immunity:
+			if 'fire' in x.dtype:
+				dmg = 0;
+
+	dmg *= -1;
+	desc += f'''{dr} fire\n'''
+	ch.modify_hp(dmg);
+	desc += f'''\n{name}: {ch.hp_str()} ({dmg})''';
+elif res == 4:
+	desc += f'''**Do not cast the cantrip, take 2d6 cold damage, and can also cast the Ice Storm spell as an Action without expending a Spell Slot**\n\n''';
+	dr = vroll("2d6");
+	dmg = dr.total;
+	for x in resistance:
+		if 'cold' in x.dtype:
+			dmg = floor(dmg / 2);
+	for x in vuln:
+			if 'cold' in x.dtype:
+				dmg = floor(dmg * 2);
+	for x in immunity:
+			if 'cold' in x.dtype:
+				dmg = 0;
+
+	dmg *= -1;
+	desc += f'''{dr} cold\n'''
+	ch.modify_hp(dmg);
+	desc += f'''\n{name}: {ch.hp_str()} ({dmg})''';
+
+base += f''' -desc "{desc}" ''';
+return base;
+</drac2>
+
+-color
+-thumb
