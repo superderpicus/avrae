@@ -8,12 +8,22 @@ purse = ch.coinpurse; #coinpurse
 startCoins = purse.get_coins(); # save the coins we have now, to use later
 compactMode = get("coinscompact", "0");
 autoMode = get("coinsauto", "0");
+imported = get("coinsimported", "0");
 
 _coins = ["pp", "gp", "ep", "sp", "cp"];
 delta = [0, 0, 0, 0, 0];
 base = f' -thumb "https://i.imgur.com/auM9MBe.png" -color "#d4af37" -title "{name}\'s Coinpurse" '; #set the picture and colour
 trailStr = ""; #string that will be appended at the end
-nLine = '\n';
+
+#check if the user has coins in their bag alias
+if imported == "0":
+	ch.set_cvar("coinsimported", "1");
+	bags = load_json(get('bags', '[]'))
+	bagsDict = {bag: items for bag, items in bags}
+	coins = bagsDict.get('Coin Pouch');
+	if coins:
+		character().coinpurse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+		trailStr = f' -f "Coins Imported|Your coins were imported from the bags alias." ';
 
 #check if compact was passed in args
 if "compact" in args:
