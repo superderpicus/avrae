@@ -22,7 +22,7 @@ if imported == "0":
 	bagsDict = {bag: items for bag, items in bags}
 	coins = bagsDict.get('Coin Pouch');
 	if coins:
-		character().coinpurse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+		purse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
 		trailStr = f' -f "Coins Imported|Your coins were imported from the bags alias." ';
 
 #check if compact was passed in args
