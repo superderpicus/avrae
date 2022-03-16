@@ -103,7 +103,7 @@ else:
 			_delta = f'(+{_delta})';
 	else:
 		_delta = "";
-	base += f' -desc "{desc}" -f "Total Value|:DDBGold: {purse.total} {_delta}" '
+	base += f' -desc "{desc}" -f "Total Value|:DDBGold: {purse.total} {_delta} gp" '
 
 return base + trailStr;
 </drac2>
