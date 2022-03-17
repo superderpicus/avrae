@@ -2,7 +2,14 @@ embed <drac2>
 args = argparse(&ARGS&);_args = &ARGS&;ch = character(); _argsJoined = " ".join(_args).lower();
 if not ch:
 	err("You do not have a valid character");
-purse = ch.coinpurse;startCoins = purse.get_coins();compactMode = get("coinscompact", "0");autoMode = get("coinsauto", "0");imported = get("coinsimported", "0");mode = get("coinsmode", "0");_coins = ["pp", "gp", "ep", "sp", "cp"];delta = [0, 0, 0, 0, 0];
+purse = ch.coinpurse; startCoins = purse.get_coins();
+compactMode = get("coinscompact", "0");
+autoMode = get("coinsauto", "0");
+imported = get("coinsimported", "0");
+mode = get("coinsmode", "0");
+electrum = get("coinselectrum", "1");
+_coins = ["pp", "gp", "ep", "sp", "cp"];
+delta = [0, 0, 0, 0, 0];
 base = f' -thumb "https://i.imgur.com/auM9MBe.png" -color "#d4af37" -title "{name}\\\'s Coinpurse" '; trailStr = "";
 if (imported == "0" and purse.total == 0) or ("import" in args):
 	_forceImport = f'import {name.lower()}' in _argsJoined;
@@ -40,6 +47,15 @@ if "mode" in args:
 	else:
 		ch.set_cvar("coinsmode", "0");
 		trailStr += f' -f "Coin Mode:|Single" ';
+	mode = get("coinsmode", "0");
+if "electrum" in args:
+	if (not electrum) or (electrum == "1"):
+		ch.set_cvar("coinselectrum", "0");
+		trailStr += f' -f "Electrum:|Hidden" ';
+	else:
+		ch.set_cvar("coinselectrum", "1");
+		trailStr += f' -f "Electrum:|Shown" ';
+	electrum = get("coinselectrum", "0");
 if f'wipe {name.lower()}' in _argsJoined:
 	trailStr += f' -f "Wipe:|Coins wiped." '
 	purse.set_coins(0, 0, 0, 0, 0);
@@ -91,16 +107,17 @@ if compactMode == "1":
 else:
 	desc = "";
 	for x in _coins:
-		index = _coins.index(x);
-		_delta = delta[index];
-		if _delta != 0:
-			if _delta < 0:
-				_delta = f'({_delta})';
-			else:					
-				_delta = f'(+{_delta})';
-		else:
-			_delta = "";
-		desc += f'''{purse.coin_str(x)} {_delta}\n''';
+		if (electrum == "0" and x != "ep") or electrum == "1":
+			index = _coins.index(x);
+			_delta = delta[index];
+			if _delta != 0:
+				if _delta < 0:
+					_delta = f'({_delta})';
+				else:					
+					_delta = f'(+{_delta})';
+			else:
+				_delta = "";
+			desc += f'''{purse.coin_str(x)} {_delta}\n''';
 	totalStr = "";
 	_delta = round(totalGained, 3);
 	if _delta != 0:
