@@ -1,68 +1,63 @@
 embed <drac2>
-args = argparse(&ARGS&);_args = &ARGS&;ch = character(); _argsJoined = " ".join(_args).lower();
-if not ch:
+args = argparse(&ARGS&); #parsed arguments
+_args = &ARGS&; #raw arguments
+ch = character(); #save character to a variable 
+_argsJoined = " ".join(_args).lower(); #used for single coins mode
+if not ch: #character not found, so we can't do anything
 	err("You do not have a valid character");
-purse = ch.coinpurse; startCoins = purse.get_coins();
-compactMode = get("coinscompact", "0");
-autoMode = get("coinsauto", "0");
-imported = get("coinsimported", "0");
-mode = get("coinsmode", "0");
-electrum = get("coinselectrum", "1");
-_coins = ["pp", "gp", "ep", "sp", "cp"];
-delta = [0, 0, 0, 0, 0];
-base = f' -thumb "https://i.imgur.com/auM9MBe.png" -color "#d4af37" -title "{name}\\\'s Coinpurse" '; trailStr = "";
-if (imported == "0" and purse.total == 0) or ("import" in args):
-	_forceImport = f'import {name.lower()}' in _argsJoined;
-	if "import" in args and imported == "1" and (not _forceImport):
+#save variables to save resources
+purse = ch.coinpurse; 
+startCoins = purse.get_coins();
+compactMode = get("coinscompact", "0"); #try to get cvar, default to 0
+autoMode = get("coinsauto", "0"); #try to get cvar, default to 0
+imported = get("coinsimported", "0"); #try to get cvar, default to 0
+mode = get("coinsmode", "0"); #try to get cvar, default to 0
+electrum = get("coinselectrum", "1"); #try to get cvar, default to 1
+_coins = ["pp", "gp", "ep", "sp", "cp"]; #used for indexing and checking if suffix is valid
+delta = [0, 0, 0, 0, 0]; #delta = change, instead of multiple addition and subtractions we add to delta, and do 1 big shift later
+base = f' -thumb "https://i.imgur.com/auM9MBe.png" -color "#d4af37" -title "{name}\\\'s Coinpurse" '; trailStr = ""; #base and trail string that we will add onto
+if (imported == "0" and purse.total == 0) or ("import" in args): #if not imported and value is 0, import automatically. also can force import with command
+	_forceImport = f'import {name.lower()}' in _argsJoined; #we need to check if they are SURE they want to import again
+	if "import" in args and imported == "1" and (not _forceImport): #do not import the coins, until they force it
 		trailStr += f' -f "Coins Not Imported|Your coins were already imported previously from the bags alias. If you want to import again, type `!coins import {name.lower()}`." ';
-	else:
-		ch.set_cvar("coinsimported", "1");
-		bags = load_json(get('bags', '[]'))
+	else: #import the coins now
+		ch.set_cvar("coinsimported", "1"); #set import cvar to 1 to prevent future imports
+		bags = load_json(get('bags', '[]')) 
 		bagsDict = {bag: items for bag, items in bags}
 		coins = bagsDict.get('Coin Pouch');
 		if coins:
-			#purse.modify_coins(coins.pp, coins.gp, coins.ep, coins.sp, coins.cp)
+			#coins from bag alias are valid, add them to the delta
 			delta[0] = coins.pp; delta[1] = coins.gp; delta[2] = coins.ep; delta[3] = coins.sp; delta[4] = coins.cp;
-			trailStr += f' -f "Coins Imported|Your coins were imported from the bags alias." ';
-if "compact" in args:
-	if (not compactMode) or (compactMode == "0"):
-		ch.set_cvar("coinscompact", "1") ;
-		trailStr += f' -f "Compact Mode:|On" '
-	else:
-		ch.set_cvar("coinscompact", "0");
-		trailStr += f' -f "Compact Mode:|Off" '
+			trailStr += f' -f "Coins Imported|Your coins were imported from the bags alias." '; #trail string is just info to add at the end
+if "compact" in args: #compact mode toggled:
+	ch.set_cvar("coinscompact", "1" if compactMode == "0" else "0") ;
+	trailStr += f' -f "Compact Mode:|{"On" if get("coinscompact") == "1" else "Off"}" '
 	compactMode = get("coinscompact", "0");
-if "auto" in args:
-	if (not autoMode) or (autoMode == "0"):
-		ch.set_cvar("coinsauto", "1") ;
-		trailStr += f' -f "Automatic Conversion:|On" '
-	else:
-		ch.set_cvar("coinsauto", "0");
-		trailStr += f' -f "Automatic Conversion:|Off" '
+if "auto" in args: #auto mode toggled
+	ch.set_cvar("coinsauto", "1" if autoMode == "0" else "0") ;
+	trailStr += f' -f "Automatic Conversion:|{"On" if get("coinsauto") == "1" else "Off"}" '
 	autoMode = get("coinsauto", "0");
-if "mode" in args:
-	if (not mode) or (mode == "0"):
-		ch.set_cvar("coinsmode", "1");
-		trailStr += f' -f "Coin Mode:|Multi" ';
-	else:
-		ch.set_cvar("coinsmode", "0");
-		trailStr += f' -f "Coin Mode:|Single" ';
-	mode = get("coinsmode", "0");
-if "electrum" in args:
-	if (not electrum) or (electrum == "1"):
-		ch.set_cvar("coinselectrum", "0");
-		trailStr += f' -f "Electrum:|Hidden" ';
-	else:
-		ch.set_cvar("coinselectrum", "1");
-		trailStr += f' -f "Electrum:|Shown" ';
+if "mode" in args: #coins mode toggled between single and multi
+	ch.set_cvar("coinsmode", "1" if mode == "0" else "0") ;
+	trailStr += f' -f "Coin Mode:|{"Multi" if get("coinsmode") == "1" else "Single"}" '
+	autoMode = get("coinsmode", "0");
+if "electrum" in args: #electrum mode toggled
+	ch.set_cvar("coinselectrum", "1" if electrum == "0" else "0") ;
+	trailStr += f' -f "Electrum:|{"Shown" if get("coinselectrum") == "1" else "Hidden"}" '
 	electrum = get("coinselectrum", "0");
-if f'wipe {name.lower()}' in _argsJoined:
+if f'wipe {name.lower()}' in _argsJoined: #wipe mode (forced)
 	trailStr += f' -f "Wipe:|Coins wiped." '
 	purse.set_coins(0, 0, 0, 0, 0);
-elif "wipe" in args:
+elif "wipe" in args: #wipe (not forced) found
 	trailStr += f' -f "Wipe:|Are you sure you want to wipe your coins? If you are sure, type `!coins wipe {name.lower()}` to empty your coins." '
+#help instructions
+if "help" in args:
+	base += f' -title "!coins help" -desc "**Usage of coins alias**:\n`!coins [args]`\n\n**Supported Arguments**:\n`help` help command\n`compact` enable compact mode, showing only the total gp value of your wallet\n`auto` enable automatic conversion to the highest level coins\n`mode` change mode of parsing, from multiple coins per line, to one line, which allows spaces\n`import` import coins from the old coins alias (this is automatically done if you have an empty coin purse)\n`wipe` empty your coin purse\n`electrum` hide electrum coins because nobody likes them\n\n**Examples**:\n`!coins +5gp`\n`!coins 50`\n`!coins -5sp +10gp` (in multi mode)\n`!coins + 20 sp` (in single mode)\n\n[(shitty) source code](https://github.com/superderpicus/avrae/blob/main/coins.py)" ';
+	base += trailStr;
+	return base;
+#multi coin mode
 if mode == "1":
-	for a in _args:
+	for a in _args: #iterate each argument (presumably each a coin)
 		if a != "":
 			size = len(a);
 			if a.isnumeric() or a[1:].isnumeric():
